@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "1050783624514",
+    "firebase_url": "https://zonaldesk-74495.firebaseio.com",
+    "project_id": "zonaldesk-74495",
+    "storage_bucket": "zonaldesk-74495.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1050783624514:android:4bf0afd244bd7a8f",
+        "android_client_info": {
+          "package_name": "com.example.aakashakki.zonaldesk"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1050783624514-crtj64ftgkje5hdd4e1b8152brgscdrs.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.aakashakki.zonaldesk",
+            "certificate_hash": "92e6be51fd0fc07d4a62785f1374fa1193dd5394"
+          }
+        },
+        {
+          "client_id": "1050783624514-u4oafk4e14ujsv1o6gtklks89stotg8g.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDRmcKT6E22FZvgJ43cVuQlxoIYel0zJcI"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1050783624514-u4oafk4e14ujsv1o6gtklks89stotg8g.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -34,5 +34,19 @@
     <string name="resend_phone_auth">Resend</string>
     <string name="tag_send">send</string>
     <string name="tag_verify">verify</string>
+    <string name="will_be_updated_soon">Will Be Updated Soon</string>
+    <string name="press_again_exit_app">Press again to exit</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="call_history">Call History Here</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="home">Home its Home</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="service_status">Service Status Here</string>
+    <string name="estimate_service">Service Estimation Here</string>
+    <string name="chat_with_zonaldesk">Chat With Zonaldesk Here</string>
+    <string name="service_request">Service Request Here</string>
 
 </resources>

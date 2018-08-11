@@ -1,18 +1,26 @@
 package com.example.aakashakki.zonaldesk;
 
+import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ShareCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -23,51 +31,41 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
-import android.widget.ShareActionProvider;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
+
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.IgnoreExtraProperties;
+import com.webianks.easy_feedback.EasyFeedback;
+
+import java.io.IOException;
+import java.util.List;
 
 public class nav_activity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
-    private WebView webView;
-    private ShareActionProvider mShareActionProvider;
-    private DatabaseReference mDatabase;
-    LocationManager locationManager;
     private FirebaseAuth mAuth;
     private long exitTime = 0;
-   // private  static  final String TAG ="haha";
+    ImageView profilepicture ;
+    TextView displayname;
+    TextView mail;
+    private DatabaseReference mDatabase;
+    LocationManager locationManager;
+    public  static  final  int REQUEST_CALL=1;
     private FirebaseAuth.AuthStateListener mAuthListener;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setTitle("Home");
         setContentView(R.layout.activity_nav_activity);
 
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-       /* webView = (WebView)findViewById(R.id.webview);
-        webView.setWebViewClient(new WebViewClient());
-        webView.loadUrl("http://biztimeit.com/");
-        WebSettings  webSettings = webView.getSettings();
-        webSettings.setJavaScriptEnabled(true);*/
-       /* FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });*/
-
         mAuth = FirebaseAuth.getInstance();
-
-
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
@@ -78,14 +76,26 @@ public class nav_activity extends AppCompatActivity
             }
         };
 
+
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        final NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        View header = navigationView.getHeaderView(0);
+        profilepicture = (ImageView) header.findViewById(R.id.profile);
+        displayname = (TextView) header.findViewById(R.id.nameUSER);
+        mail = (TextView)header.findViewById(R.id.PhoneorMail);
+
+        String mail_id = mAuth.getCurrentUser().getEmail();
+        String user_id = mAuth.getCurrentUser().getDisplayName();
+
+        profilepicture.setImageResource(R.drawable.biztimelogo);
+        displayname.setText(user_id);
+        mail.setText("Mail: "+mail_id);
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -102,8 +112,8 @@ public class nav_activity extends AppCompatActivity
             //   ActivityCompat.requestPermissions(this,new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},1);
 
         }
-        if(locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)){
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, new LocationListener() {
+        if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, new LocationListener() {
                 @Override
                 public void onLocationChanged(Location location) {
                     double lat = location.getLatitude();
@@ -140,8 +150,8 @@ public class nav_activity extends AppCompatActivity
                 }
             });
         }
-        else if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, new LocationListener() {
+        else if(locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)){
+            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, new LocationListener() {
                 @Override
                 public void onLocationChanged(Location location) {
                     double lat = location.getLatitude();
@@ -180,7 +190,22 @@ public class nav_activity extends AppCompatActivity
             showSettingsAlert();
 
         }
+
+
+
+        Fragment fragment = null;
+
+
+        fragment = new Home();
+        if (fragment != null) {
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            ft.replace(R.id.title_text, fragment);
+            ft.commit();
+        }
+
     }
+
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -192,26 +217,17 @@ public class nav_activity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
-        }
-      /* else if (webView.canGoBack()){
-                webView.goBack();
-            }*/
+        } else {
 
-        else {
             doExitApp();
         }
     }
-    // Call to update the share intent
-    private void setShareIntent(Intent shareIntent) {
-        if (mShareActionProvider != null) {
-            mShareActionProvider.setShareIntent(shareIntent);
-        }
-    }
+
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.nav_activity, menu);
-
         return true;
     }
 
@@ -221,12 +237,12 @@ public class nav_activity extends AppCompatActivity
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
+//noinspection SimplifiableIfStatement
         if (id == R.id.call_action) {
-            Toast.makeText(nav_activity.this,"Call will be Connected",Toast.LENGTH_SHORT).show();
-
+            //  Toast.makeText(HomeUI.this,"Call will be connected",Toast.LENGTH_SHORT).show();
+            makePhoneCall();
         }
+        //noinspection SimplifiableIfStatement
         if (id == R.id.signout_action) {
             mAuth.signOut();
             Toast.makeText(nav_activity.this,"signout was done",Toast.LENGTH_SHORT).show();
@@ -236,32 +252,70 @@ public class nav_activity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
+    private void makePhoneCall() {
+        String AdminNumber ="+918074878950";
+        if(ContextCompat.checkSelfPermission(nav_activity.this,android.Manifest.permission.CALL_PHONE)!=PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(nav_activity.this,new String[]{Manifest.permission.CALL_PHONE},REQUEST_CALL);
+        }
+        else{
+            String dial ="tel:"+AdminNumber;
+            startActivity(new Intent(Intent.ACTION_CALL, Uri.parse(dial)));
+        }
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if(requestCode ==REQUEST_CALL){
+            if(grantResults.length>0&&grantResults[0]==PackageManager.PERMISSION_GRANTED){
+                makePhoneCall();
+
+            }
+            else{
+                Toast.makeText(nav_activity.this,"Permission Denied",Toast.LENGTH_SHORT).show();
+
+            }
+        }
+    }
+
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
+
+
+        Fragment fragment = null;
+
+        Bundle bundle = new Bundle();
         if (id == R.id.service_estimate) {
-            Toast.makeText(nav_activity.this,"Service Estimate",Toast.LENGTH_SHORT).show();
-            // Handle the camera action
+//            Toast.makeText(HomeUI.this,"Service Estimate",Toast.LENGTH_SHORT).show();
+
+            fragment = new EstimateService();
         } else if (id == R.id.service_request) {
-            Toast.makeText(nav_activity.this,"Service request",Toast.LENGTH_SHORT).show();
+//            Toast.makeText(HomeUI.this,"Service request",Toast.LENGTH_SHORT).show();
+            fragment = new RequestService();
 
         }  else if (id == R.id.call_history) {
-            Toast.makeText(nav_activity.this,"Call History",Toast.LENGTH_SHORT).show();
+//            Toast.makeText(HomeUI.this,"Call History",Toast.LENGTH_SHORT).show();
+            fragment = new CallHistory();
+
 
         } else if (id == R.id.service_status) {
-            Toast.makeText(nav_activity.this,"Service Status",Toast.LENGTH_SHORT).show();
+//            Toast.makeText(HomeUI.this,"Service Status",Toast.LENGTH_SHORT).show();
+            fragment = new ServiceStatus();
+
 
         } else if (id == R.id.chat_zonaldesk) {
-            Toast.makeText(nav_activity.this,"chat",Toast.LENGTH_SHORT).show();
+//            Toast.makeText(HomeUI.this,"chat with admin",Toast.LENGTH_SHORT).show();
+            fragment = new ChatZonaldesk();
+
         }
         else if (id == R.id.home) {
-            Toast.makeText(nav_activity.this,"Home",Toast.LENGTH_SHORT).show();
+            fragment = new Home();
 
         }
         else if (id == R.id.nav_share) {
-            //Toast.makeText(nav_activity.this,"share",Toast.LENGTH_SHORT).show();
             try {
                 ShareCompat.IntentBuilder.from(nav_activity.this)
                         .setType("text/plain")
@@ -269,26 +323,35 @@ public class nav_activity extends AppCompatActivity
                         .setText("http://play.google.com/store/apps/details?id=" + getApplication().getPackageName())
                         .startChooser();
             } catch(Exception e) {
-                //e.toString();
+                e.printStackTrace();
             }
+
 
         }
         else if (id == R.id.feedback) {
-            Toast.makeText(nav_activity.this,"Send",Toast.LENGTH_SHORT).show();
+            new EasyFeedback.Builder(this)
+                    .withEmail("aakashakki47@gmail.com")
+                    .withSystemInfo()
+                    .build()
+                    .start();
 
         }
+
+        if (fragment != null) {
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            ft.replace(R.id.title_text, fragment);
+            ft.commit();
+        }
+
+        // Highlight the selected item has been done by NavigationView
+        item.setChecked(true);
+
+
+
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
-    }
-    public void doExitApp() {
-        if ((System.currentTimeMillis() - exitTime) > 2000) {
-            Toast.makeText(this, "press again to exist", Toast.LENGTH_SHORT).show();
-            exitTime = System.currentTimeMillis();
-        } else {
-            finish();
-        }
     }
     public void showSettingsAlert() {
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
@@ -319,4 +382,17 @@ public class nav_activity extends AppCompatActivity
 
         alertDialog.show();
     }
+
+
+
+    public void doExitApp() {
+        if ((System.currentTimeMillis() - exitTime) > 2000) {
+            Toast.makeText(this, R.string.press_again_exit_app, Toast.LENGTH_SHORT).show();
+            exitTime = System.currentTimeMillis();
+        } else {
+            finish();
+        }
+    }
+
 }
+
